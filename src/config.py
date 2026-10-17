@@ -24,9 +24,9 @@ BATTERY_REFILL_PER_TICK = 1.0
 CLEANING_RATE_PER_TICK = 0.05
 # Width of each panel along the robot's x-axis
 PANEL_WIDTH_M = 2.0
-# Brush health lost per cleaning tick: 0.2 percentage points (ESTIMATE)
+# Brush health lost per cleaning tick: 0.0004 percentage points (ESTIMATE)
 BRUSH_WEAR_PER_TICK = 0.0004
-# Water tank capacity used per cleaning tick: 0.5 percentage points (ESTIMATE)
+# Water tank capacity used per cleaning tick: 0.0004 percentage points (ESTIMATE)
 WATER_USE_PER_TICK = 0.0004
 # Brush maintenance threshold in percent
 BRUSH_MAINTENANCE_THRESHOLD_PCT = 40
@@ -34,3 +34,5 @@ BRUSH_MAINTENANCE_THRESHOLD_PCT = 40
 CLEANING_TRIGGER_DISTANCE_M = PANEL_WIDTH_M / 2
 # Number of ticks spent cleaning at each distance trigger (ESTIMATE)
 CLEANING_DURATION_TICKS = 5
+# Time required to replace the brush: 10 minutes (ESTIMATE)
+MAINTENANCE_DURATION_TICKS = 600

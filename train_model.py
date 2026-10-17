@@ -29,6 +29,9 @@ WITH ordered_readings AS (
         lag(brush_health_pct, 1000) OVER (
             PARTITION BY robot_id ORDER BY ts
         ) AS brush_health_1000_ticks_ago,
+        lag(brush_health_pct) OVER (
+            PARTITION BY robot_id ORDER BY ts
+        ) AS previous_brush_health_pct,
         sum(CASE WHEN state = 'CLEANING' THEN 1 ELSE 0 END) OVER (
             PARTITION BY robot_id
             ORDER BY ts
@@ -39,9 +42,20 @@ WITH ordered_readings AS (
 readings_with_failure_tick AS (
     SELECT
         *,
-        min(CASE WHEN brush_health_pct < 40 THEN tick_number END) OVER (
-            PARTITION BY robot_id
-        ) AS first_failure_tick
+        coalesce(
+            min(
+                CASE
+                    WHEN brush_health_pct < 40
+                         AND previous_brush_health_pct >= 40
+                    THEN tick_number
+                END
+            ) OVER (
+                PARTITION BY robot_id
+                ORDER BY tick_number
+                ROWS BETWEEN 1 FOLLOWING AND UNBOUNDED FOLLOWING
+            ),
+            tick_number
+        ) AS next_failure_tick
     FROM ordered_readings
 )
 SELECT
@@ -52,7 +66,7 @@ SELECT
         AS brush_drain_rate_per_tick,
     cleaning_ticks_trailing_1000,
     water_tank_pct,
-    greatest(first_failure_tick - tick_number, 0) AS ticks_until_failure
+    greatest(next_failure_tick - tick_number, 0) AS ticks_until_failure
 FROM readings_with_failure_tick
 WHERE tick_number % 100 = 0
   AND tick_number > 1000
