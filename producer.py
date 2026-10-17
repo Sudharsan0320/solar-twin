@@ -43,6 +43,7 @@ def parse_args():
     parser.add_argument("--topic", default="robot.telemetry")
     parser.add_argument("--interval", type=float, default=1.0)
     parser.add_argument("--max-messages", type=int)
+    parser.add_argument("--robot-id", default="twin-01")
     parser.add_argument("--start-tick", type=int, default=0)
     parser.add_argument(
         "--state",
@@ -59,6 +60,7 @@ def main():
     if args.max_messages is not None and args.max_messages < 1:
         raise ValueError("--max-messages must be at least one")
 
+    telemetry.set_robot_id(args.robot_id)
     if args.state is not None:
         robot.ROBOT["state"] = args.state
     tick_number = max(

@@ -13,6 +13,11 @@ ROBOT_ID = "twin-01"
 SIMULATION_START = datetime(2026, 1, 1)
 
 
+def set_robot_id(new_id):
+    global ROBOT_ID
+    ROBOT_ID = new_id
+
+
 def emit(tick_number):
     robot_state = robot.ROBOT
     panel_index = int(robot_state["x"] // PANEL_WIDTH_M)

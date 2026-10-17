@@ -36,20 +36,23 @@ def render_dashboard():
         ).fetchdf()
         cleaning_today = connection.execute(
             """
-            SELECT count(*)
+            SELECT robot_id, count(*) AS cleaning_ticks
             FROM read_parquet(?, hive_partitioning = true)
             WHERE state = 'CLEANING'
               AND CAST(ts AS DATE) = (
                   SELECT max(CAST(ts AS DATE))
                   FROM read_parquet(?, hive_partitioning = true)
               )
+            GROUP BY robot_id
+            ORDER BY robot_id
             """,
             [parquet_files, parquet_files],
-        ).fetchone()[0]
+        ).fetchdf()
 
     st.subheader("Latest readings")
     st.dataframe(latest_readings, use_container_width=True, hide_index=True)
-    st.metric("Cleaning ticks on latest simulated day", cleaning_today)
+    st.subheader("Cleaning ticks on latest simulated day")
+    st.dataframe(cleaning_today, use_container_width=True, hide_index=True)
 
     st.subheader("Weekly cleaning summary")
     weekly_summary = weekly_cleaning_summary(parquet_files)
