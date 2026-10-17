@@ -108,6 +108,8 @@ The dashboard refreshes every two seconds and shows the latest battery, state, a
 - **Phase 2** — local Kafka → Spark streaming → Parquet → dashboard
 - **Phase 3** — cleaning analytics + brush/battery failure prediction
 
+The brush-wear model will score highly because the simulated wear is nearly deterministic (a fixed rate per cleaning tick); that reflects the simplicity of the simulation, not model magic.
+
 ## Assumptions
 
 The report had no measured results, so anything I couldn't verify is an estimate, marked as one in `config.py`. The pump flow (80–120 L/H) comes from the datasheet — that's a fact.

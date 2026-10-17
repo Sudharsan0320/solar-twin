@@ -19,6 +19,7 @@ def emit(tick_number):
         max(int(robot_state["x"] // PANEL_WIDTH_M), 0),
         len(panel.PANELS) - 1,
     )
+    panel_dust = panel.PANELS[panel_index]["dust"]
     timestamp = SIMULATION_START + timedelta(seconds=tick_number)
 
     return {
@@ -32,5 +33,6 @@ def emit(tick_number):
         "water_tank_pct": robot_state["water_tank_pct"],
         "brush_health_pct": robot_state["brush_health_pct"],
         "panel_id": panel_index,
+        "panel_dust": panel_dust,
         "fault_code": robot_state["fault_code"],
     }

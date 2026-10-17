@@ -25,9 +25,9 @@ CLEANING_RATE_PER_TICK = 0.05
 # Width of each panel along the robot's x-axis
 PANEL_WIDTH_M = 2.0
 # Brush health lost per cleaning tick: 0.2 percentage points (ESTIMATE)
-BRUSH_WEAR_PER_TICK = 0.2
+BRUSH_WEAR_PER_TICK = 0.0004
 # Water tank capacity used per cleaning tick: 0.5 percentage points (ESTIMATE)
-WATER_USE_PER_TICK = 0.5
+WATER_USE_PER_TICK = 0.0004
 # Brush maintenance threshold in percent
 BRUSH_MAINTENANCE_THRESHOLD_PCT = 40
 # Distance traveled between automatic cleaning stops: half a panel width (ESTIMATE)

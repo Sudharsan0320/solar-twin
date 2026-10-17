@@ -31,6 +31,7 @@ TELEMETRY_SCHEMA = StructType(
         StructField("water_tank_pct", DoubleType(), False),
         StructField("brush_health_pct", DoubleType(), False),
         StructField("panel_id", IntegerType(), False),
+        StructField("panel_dust", DoubleType(), False),
         StructField("fault_code", StringType(), True),
     ]
 )
