@@ -1,4 +1,5 @@
 from pathlib import Path
+import pickle
 
 import duckdb
 from sklearn.linear_model import LinearRegression
@@ -71,6 +72,8 @@ FROM readings_with_failure_tick
 WHERE tick_number % 100 = 0
   AND tick_number > 1000
   AND state != 'MAINTENANCE'
+  -- Fleet demo readings are confined to Jan 1; preserve tick numbering but omit them from training.
+  AND CAST(ts AS DATE) > DATE '2026-01-01'
   AND tick_number <= (
       SELECT max(tick_number)
       FROM ordered_readings
@@ -103,6 +106,10 @@ def main():
 
     model = LinearRegression()
     model.fit(train[FEATURE_COLUMNS], train[TARGET_COLUMN])
+    model_path = ROOT / "model.pkl"
+    with model_path.open("wb") as model_file:
+        pickle.dump({"model": model, "features": FEATURE_COLUMNS}, model_file)
+    print(f"Saved trained model to {model_path}")
     predictions = model.predict(test[FEATURE_COLUMNS]).clip(min=0)
 
     print(f"MAE: {mean_absolute_error(test[TARGET_COLUMN], predictions):.2f} ticks")
