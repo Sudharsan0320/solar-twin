@@ -2,15 +2,16 @@ import matplotlib.pyplot as plt
 from matplotlib import animation, patches
 
 from src import config, panel, robot
+from src.config import ARRAY_LENGTH_M, NUM_PANELS
 
 
 figure, axes = plt.subplots()
-axes.set_xlim(0, len(panel.PANELS) * config.PANEL_WIDTH_M)
+axes.set_xlim(0, ARRAY_LENGTH_M)
 axes.set_ylim(-0.2, config.PANEL_SIZE[0] + 0.2)
 axes.set_aspect("equal")
 
 panel_rectangles = []
-for panel_index, panel_state in enumerate(panel.PANELS):
+for panel_index in range(NUM_PANELS):
     rectangle = patches.Rectangle(
         (panel_index * config.PANEL_WIDTH_M, 0),
         config.PANEL_WIDTH_M,

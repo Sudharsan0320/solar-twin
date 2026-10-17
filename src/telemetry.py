@@ -15,10 +15,7 @@ SIMULATION_START = datetime(2026, 1, 1)
 
 def emit(tick_number):
     robot_state = robot.ROBOT
-    panel_index = min(
-        max(int(robot_state["x"] // PANEL_WIDTH_M), 0),
-        len(panel.PANELS) - 1,
-    )
+    panel_index = int(robot_state["x"] // PANEL_WIDTH_M)
     panel_dust = panel.PANELS[panel_index]["dust"]
     timestamp = SIMULATION_START + timedelta(seconds=tick_number)
 

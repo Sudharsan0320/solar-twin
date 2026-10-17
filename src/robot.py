@@ -1,5 +1,6 @@
 if __package__:
     from .config import (
+        ARRAY_LENGTH_M,
         BATTERY_CLEANING_DRAIN_PER_TICK,
         BATTERY_IDLE_DRAIN_PER_TICK,
         BATTERY_MOVING_DRAIN_PER_TICK,
@@ -17,6 +18,7 @@ if __package__:
     from . import panel
 else:
     from config import (
+        ARRAY_LENGTH_M,
         BATTERY_CLEANING_DRAIN_PER_TICK,
         BATTERY_IDLE_DRAIN_PER_TICK,
         BATTERY_MOVING_DRAIN_PER_TICK,
@@ -95,6 +97,8 @@ def tick():
 
     if state == "MOVING":
         ROBOT["x"] += DRIVE_SPEED
+        if ROBOT["x"] >= ARRAY_LENGTH_M:
+            ROBOT["x"] -= ARRAY_LENGTH_M
         ROBOT["distance_since_clean_m"] += DRIVE_SPEED
         if ROBOT["distance_since_clean_m"] >= CLEANING_TRIGGER_DISTANCE_M:
             ROBOT["distance_since_clean_m"] = 0.0
@@ -103,10 +107,7 @@ def tick():
         return
 
     if state == "CLEANING":
-        panel_index = min(
-            int(ROBOT["x"] // PANEL_WIDTH_M),
-            len(panel.PANELS) - 1,
-        )
+        panel_index = int(ROBOT["x"] // PANEL_WIDTH_M)
         cleaning_amount = CLEANING_RATE_PER_TICK * (
             ROBOT["brush_health_pct"] / 100
         )

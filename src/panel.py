@@ -1,10 +1,10 @@
 if __package__:
-    from .config import DUST_GROWTH, MAX_DUST
+    from .config import DUST_GROWTH, MAX_DUST, NUM_PANELS
 else:
-    from config import DUST_GROWTH, MAX_DUST
+    from config import DUST_GROWTH, MAX_DUST, NUM_PANELS
 
 
-PANELS = [{"dust": 0.0} for _ in range(4)]
+PANELS = [{"dust": 0.0} for _ in range(NUM_PANELS)]
 
 
 def tick():

@@ -24,6 +24,9 @@ BATTERY_REFILL_PER_TICK = 1.0
 CLEANING_RATE_PER_TICK = 0.05
 # Width of each panel along the robot's x-axis
 PANEL_WIDTH_M = 2.0
+# Number of panels in the solar array (ESTIMATE)
+NUM_PANELS = 20
+ARRAY_LENGTH_M = NUM_PANELS * PANEL_WIDTH_M
 # Brush health lost per cleaning tick: 0.0004 percentage points (ESTIMATE)
 BRUSH_WEAR_PER_TICK = 0.0004
 # Water tank capacity used per cleaning tick: 0.0004 percentage points (ESTIMATE)
