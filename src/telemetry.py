@@ -37,4 +37,5 @@ def emit(tick_number):
         "panel_id": panel_index,
         "panel_dust": panel_dust,
         "fault_code": robot_state["fault_code"],
+        "cleaning_trigger": robot_state["cleaning_trigger"],
     }

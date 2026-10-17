@@ -7,6 +7,8 @@ from kafka import KafkaConsumer, KafkaProducer, TopicPartition
 
 from src import panel, robot, telemetry
 
+MAX_PENDING_SENDS = 100
+
 
 def latest_tick_number(bootstrap_server, topic):
     consumer = KafkaConsumer(
@@ -71,6 +73,7 @@ def main():
     producer = KafkaProducer(
         bootstrap_servers=args.bootstrap_server,
     )
+    pending_sends = []
     next_publish = time.monotonic()
 
     try:
@@ -80,13 +83,20 @@ def main():
             robot.tick()
             reading = telemetry.emit(tick_number)
             encoded_reading = json.dumps(reading).encode("utf-8")
-            producer.send(args.topic, value=encoded_reading).get(timeout=30)
+            pending_sends.append(producer.send(args.topic, value=encoded_reading))
             print(json.dumps(reading), flush=True)
+            if len(pending_sends) >= MAX_PENDING_SENDS:
+                producer.flush(timeout=30)
+                for pending_send in pending_sends:
+                    pending_send.get(timeout=30)
+                pending_sends.clear()
             next_publish += args.interval
             if args.max_messages is None or tick_number - first_tick < args.max_messages:
                 time.sleep(max(0.0, next_publish - time.monotonic()))
     finally:
         producer.flush(timeout=30)
+        for pending_send in pending_sends:
+            pending_send.get(timeout=30)
         producer.close(timeout=30)
 
 

@@ -33,6 +33,7 @@ TELEMETRY_SCHEMA = StructType(
         StructField("panel_id", IntegerType(), False),
         StructField("panel_dust", DoubleType(), False),
         StructField("fault_code", StringType(), True),
+        StructField("cleaning_trigger", StringType(), False),
     ]
 )
 

@@ -12,6 +12,8 @@ PUMP_FLOW = 100
 DUST_GROWTH = 0.004
 # Maximum dust level: fully soiled panel
 MAX_DUST = 1.0
+# Dust fraction at which the simulated dirt sensor fires (ESTIMATE)
+DIRT_THRESHOLD = 0.3
 # Battery drain per idle tick: 0.02 percentage points (ESTIMATE)
 BATTERY_IDLE_DRAIN_PER_TICK = 0.02
 # Battery drain per moving tick: 0.1 percentage points (ESTIMATE)

@@ -10,6 +10,7 @@ if __package__:
         CLEANING_DURATION_TICKS,
         CLEANING_RATE_PER_TICK,
         CLEANING_TRIGGER_DISTANCE_M,
+        DIRT_THRESHOLD,
         DRIVE_SPEED,
         MAINTENANCE_DURATION_TICKS,
         PANEL_WIDTH_M,
@@ -28,6 +29,7 @@ else:
         CLEANING_DURATION_TICKS,
         CLEANING_RATE_PER_TICK,
         CLEANING_TRIGGER_DISTANCE_M,
+        DIRT_THRESHOLD,
         DRIVE_SPEED,
         MAINTENANCE_DURATION_TICKS,
         PANEL_WIDTH_M,
@@ -47,6 +49,7 @@ ROBOT = {
     "state": "IDLE",
     "distance_since_clean_m": 0.0,
     "cleaning_ticks_remaining": 0,
+    "cleaning_trigger": "none",
     "maintenance_ticks_remaining": 0,
     "resume_state": None,
 }
@@ -100,10 +103,17 @@ def tick():
         if ROBOT["x"] >= ARRAY_LENGTH_M:
             ROBOT["x"] -= ARRAY_LENGTH_M
         ROBOT["distance_since_clean_m"] += DRIVE_SPEED
-        if ROBOT["distance_since_clean_m"] >= CLEANING_TRIGGER_DISTANCE_M:
-            ROBOT["distance_since_clean_m"] = 0.0
-            ROBOT["cleaning_ticks_remaining"] = CLEANING_DURATION_TICKS
-            ROBOT["state"] = "CLEANING"
+        panel_index = int(ROBOT["x"] // PANEL_WIDTH_M)
+        if panel.PANELS[panel_index]["dust"] >= DIRT_THRESHOLD:
+            ROBOT["cleaning_trigger"] = "dirt"
+        elif ROBOT["distance_since_clean_m"] >= CLEANING_TRIGGER_DISTANCE_M:
+            ROBOT["cleaning_trigger"] = "distance"
+        else:
+            return
+
+        ROBOT["distance_since_clean_m"] = 0.0
+        ROBOT["cleaning_ticks_remaining"] = CLEANING_DURATION_TICKS
+        ROBOT["state"] = "CLEANING"
         return
 
     if state == "CLEANING":
@@ -128,6 +138,7 @@ def tick():
             ROBOT["fault_code"] = "BRUSH_WORN"
         if ROBOT["cleaning_ticks_remaining"] <= 0:
             ROBOT["state"] = "MOVING"
+            ROBOT["cleaning_trigger"] = "none"
         if (
             ROBOT["brush_health_pct"] < BRUSH_MAINTENANCE_THRESHOLD_PCT
             and ROBOT["state"] != "MAINTENANCE"
