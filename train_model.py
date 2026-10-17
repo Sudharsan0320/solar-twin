@@ -70,6 +70,13 @@ SELECT
 FROM readings_with_failure_tick
 WHERE tick_number % 100 = 0
   AND tick_number > 1000
+  AND state != 'MAINTENANCE'
+  AND tick_number <= (
+      SELECT max(tick_number)
+      FROM ordered_readings
+      WHERE brush_health_pct < 40
+        AND previous_brush_health_pct >= 40
+  )
 ORDER BY ts
 """
 
