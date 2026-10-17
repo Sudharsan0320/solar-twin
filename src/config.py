@@ -30,3 +30,7 @@ BRUSH_WEAR_PER_TICK = 0.2
 WATER_USE_PER_TICK = 0.5
 # Brush maintenance threshold in percent
 BRUSH_MAINTENANCE_THRESHOLD_PCT = 40
+# Distance traveled between automatic cleaning stops: half a panel width (ESTIMATE)
+CLEANING_TRIGGER_DISTANCE_M = PANEL_WIDTH_M / 2
+# Number of ticks spent cleaning at each distance trigger (ESTIMATE)
+CLEANING_DURATION_TICKS = 5

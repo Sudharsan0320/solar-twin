@@ -6,7 +6,9 @@ if __package__:
         BATTERY_REFILL_PER_TICK,
         BRUSH_MAINTENANCE_THRESHOLD_PCT,
         BRUSH_WEAR_PER_TICK,
+        CLEANING_DURATION_TICKS,
         CLEANING_RATE_PER_TICK,
+        CLEANING_TRIGGER_DISTANCE_M,
         DRIVE_SPEED,
         PANEL_WIDTH_M,
         WATER_USE_PER_TICK,
@@ -20,7 +22,9 @@ else:
         BATTERY_REFILL_PER_TICK,
         BRUSH_MAINTENANCE_THRESHOLD_PCT,
         BRUSH_WEAR_PER_TICK,
+        CLEANING_DURATION_TICKS,
         CLEANING_RATE_PER_TICK,
+        CLEANING_TRIGGER_DISTANCE_M,
         DRIVE_SPEED,
         PANEL_WIDTH_M,
         WATER_USE_PER_TICK,
@@ -37,36 +41,54 @@ ROBOT = {
     "brush_health_pct": 100.0,
     "fault_code": None,
     "state": "IDLE",
+    "distance_since_clean_m": 0.0,
+    "cleaning_ticks_remaining": 0,
+    "resume_state": None,
 }
 
 
 def tick():
-    if ROBOT["state"] == "CHARGING":
+    state = ROBOT["state"]
+    if state == "CHARGING":
         ROBOT["battery_pct"] = min(
             ROBOT["battery_pct"] + BATTERY_REFILL_PER_TICK,
             100.0,
         )
         if ROBOT["battery_pct"] >= 100.0:
-            ROBOT["state"] = "IDLE"
+            ROBOT["state"] = ROBOT["resume_state"] or "MOVING"
+            ROBOT["resume_state"] = None
+        return
+
+    if state == "MOVING":
+        drain_rate = BATTERY_MOVING_DRAIN_PER_TICK
+    elif state == "CLEANING":
+        drain_rate = BATTERY_CLEANING_DRAIN_PER_TICK
     else:
-        if ROBOT["state"] == "MOVING":
-            drain_rate = BATTERY_MOVING_DRAIN_PER_TICK
-        elif ROBOT["state"] == "CLEANING":
-            drain_rate = BATTERY_CLEANING_DRAIN_PER_TICK
-        else:
-            # Unknown states such as FAULT use the safer idle trickle rate.
-            drain_rate = BATTERY_IDLE_DRAIN_PER_TICK
-        ROBOT["battery_pct"] = max(
-            ROBOT["battery_pct"] - drain_rate,
-            0.0,
-        )
-        if ROBOT["battery_pct"] < 20.0:
-            ROBOT["state"] = "CHARGING"
+        # Unknown states such as FAULT use the safer idle trickle rate.
+        drain_rate = BATTERY_IDLE_DRAIN_PER_TICK
+    ROBOT["battery_pct"] = max(
+        ROBOT["battery_pct"] - drain_rate,
+        0.0,
+    )
+    if ROBOT["battery_pct"] < 20.0:
+        ROBOT["resume_state"] = "MOVING" if state == "IDLE" else state
+        ROBOT["state"] = "CHARGING"
+        return
 
-    if ROBOT["state"] == "MOVING":
+    if state == "IDLE":
+        ROBOT["state"] = "MOVING"
+        return
+
+    if state == "MOVING":
         ROBOT["x"] += DRIVE_SPEED
+        ROBOT["distance_since_clean_m"] += DRIVE_SPEED
+        if ROBOT["distance_since_clean_m"] >= CLEANING_TRIGGER_DISTANCE_M:
+            ROBOT["distance_since_clean_m"] = 0.0
+            ROBOT["cleaning_ticks_remaining"] = CLEANING_DURATION_TICKS
+            ROBOT["state"] = "CLEANING"
+        return
 
-    if ROBOT["state"] == "CLEANING":
+    if state == "CLEANING":
         panel_index = min(
             int(ROBOT["x"] // PANEL_WIDTH_M),
             len(panel.PANELS) - 1,
@@ -83,8 +105,11 @@ def tick():
             ROBOT["water_tank_pct"] - WATER_USE_PER_TICK,
             0.0,
         )
+        ROBOT["cleaning_ticks_remaining"] -= 1
         if (
             ROBOT["brush_health_pct"] < BRUSH_MAINTENANCE_THRESHOLD_PCT
             and ROBOT["fault_code"] is None
         ):
             ROBOT["fault_code"] = "BRUSH_WORN"
+        if ROBOT["cleaning_ticks_remaining"] <= 0:
+            ROBOT["state"] = "MOVING"
