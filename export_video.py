@@ -8,32 +8,40 @@ import matplotlib.pyplot as plt
 from matplotlib import animation, patches
 
 from src import config, panel, robot
-from src.config import ARRAY_LENGTH_M, NUM_PANELS, ROBOT_FOOTPRINT
+from src.config import (
+    ARRAY_LENGTH_M,
+    NUM_PANELS,
+    NUM_ROWS,
+    ROW_PITCH,
+    ROBOT_FOOTPRINT,
+)
 
 
 figure, axes = plt.subplots()
 axes.set_xlim(0, ARRAY_LENGTH_M)
-axes.set_ylim(-0.2, config.PANEL_SIZE[0] + 0.2)
+axes.set_ylim(-0.2, NUM_ROWS * ROW_PITCH)
 axes.set_aspect("equal")
 robot_status = axes.text(
-    0.5,
-    1.1,
+    0.01,
+    1.01,
     "",
     ha="left",
     va="bottom",
     fontsize=8,
+    transform=axes.transAxes,
 )
 
 panel_rectangles = []
-for panel_index in range(NUM_PANELS):
-    rectangle = patches.Rectangle(
-        (panel_index * config.PANEL_WIDTH_M, 0),
-        config.PANEL_WIDTH_M,
-        config.PANEL_SIZE[0],
-    )
-    axes.add_patch(rectangle)
-    rectangle.set_edgecolor("black")
-    panel_rectangles.append(rectangle)
+for row in range(NUM_ROWS):
+    for col in range(NUM_PANELS):
+        rectangle = patches.Rectangle(
+            (col * config.PANEL_WIDTH_M, row * ROW_PITCH),
+            config.PANEL_WIDTH_M,
+            config.PANEL_SIZE[0],
+        )
+        axes.add_patch(rectangle)
+        rectangle.set_edgecolor("black")
+        panel_rectangles.append(rectangle)
 
 for rectangle, panel_state in zip(panel_rectangles, panel.PANELS):
     grayscale = 1 - panel_state["dust"]
@@ -60,6 +68,17 @@ chassis = patches.Rectangle(
     edgecolor="black",
 )
 axes.add_patch(chassis)
+heading_arrow = patches.Polygon(
+    [
+        (robot.ROBOT["x"] + chassis_width / 2, robot.ROBOT["y"]),
+        (robot.ROBOT["x"] + chassis_width / 2 - 0.1, robot.ROBOT["y"] + 0.06),
+        (robot.ROBOT["x"] + chassis_width / 2 - 0.1, robot.ROBOT["y"] - 0.06),
+    ],
+    closed=True,
+    facecolor="#ffeb3b",
+    edgecolor="black",
+)
+axes.add_patch(heading_arrow)
 for wheel in wheels:
     axes.add_patch(wheel)
 
@@ -113,6 +132,20 @@ def update(frame_number):
             robot.ROBOT["y"] - chassis_height / 2,
         )
     )
+    direction = 1 if robot.ROBOT["heading"] == 0.0 else -1
+    heading_arrow.set_xy(
+        [
+            (robot.ROBOT["x"] + direction * chassis_width / 2, robot.ROBOT["y"]),
+            (
+                robot.ROBOT["x"] + direction * (chassis_width / 2 - 0.1),
+                robot.ROBOT["y"] + 0.06,
+            ),
+            (
+                robot.ROBOT["x"] + direction * (chassis_width / 2 - 0.1),
+                robot.ROBOT["y"] - 0.06,
+            ),
+        ]
+    )
     for wheel, (x_offset, y_offset) in zip(wheels, wheel_offsets):
         wheel.center = (
             robot.ROBOT["x"] + x_offset,
@@ -137,7 +170,7 @@ def update(frame_number):
     )
     for droplet, (x_offset, y_offset) in zip(spray_droplets, spray_offsets):
         droplet.center = (
-            (robot.ROBOT["x"] + x_offset) % ARRAY_LENGTH_M,
+            robot.ROBOT["x"] + x_offset,
             robot.ROBOT["y"] + y_offset,
         )
         droplet.set_visible(spray_active)
@@ -151,6 +184,7 @@ def update(frame_number):
         *panel_rectangles,
         *wheels,
         chassis,
+        heading_arrow,
         *brush_lines,
         *spray_droplets,
         robot_status,

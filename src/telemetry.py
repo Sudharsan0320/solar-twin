@@ -1,10 +1,8 @@
 from datetime import datetime, timedelta
 
 if __package__:
-    from .config import PANEL_WIDTH_M
     from . import panel, robot
 else:
-    from config import PANEL_WIDTH_M
     import panel
     import robot
 
@@ -20,8 +18,10 @@ def set_robot_id(new_id):
 
 def emit(tick_number):
     robot_state = robot.ROBOT
-    panel_index = int(robot_state["x"] // PANEL_WIDTH_M)
-    panel_dust = panel.PANELS[panel_index]["dust"]
+    panel_index = panel.panel_at(robot_state["x"], robot_state["y"])
+    panel_dust = (
+        panel.PANELS[panel_index]["dust"] if panel_index is not None else 0.0
+    )
     timestamp = SIMULATION_START + timedelta(seconds=tick_number)
 
     return {
@@ -38,13 +38,14 @@ def emit(tick_number):
             if robot_state["target_panel"] is not None
             else -1
         ),
+        "row": robot_state["row"],
         "x": robot_state["x"],
         "y": robot_state["y"],
         "heading": robot_state["heading"],
         "battery_pct": robot_state["battery_pct"],
         "water_tank_pct": robot_state["water_tank_pct"],
         "brush_health_pct": robot_state["brush_health_pct"],
-        "panel_id": panel_index,
+        "panel_id": panel_index if panel_index is not None else -1,
         "panel_dust": panel_dust,
         "fault_code": robot_state["fault_code"],
         "cleaning_trigger": robot_state["cleaning_trigger"],

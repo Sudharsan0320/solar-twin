@@ -1,5 +1,10 @@
 # Panel size: 1 m × 2 m test panel
 PANEL_SIZE = (1.0, 2.0)
+# Number of panel rows (ESTIMATE)
+NUM_ROWS = 2
+# Gap between panel rows in meters (ESTIMATE)
+ROW_GAP_M = 1.5
+ROW_PITCH = PANEL_SIZE[0] + ROW_GAP_M
 # Robot footprint: ~30 cm × 20 cm, mass ~2.5 kg (estimate)
 ROBOT_FOOTPRINT = (0.3, 0.2, 2.5)
 # Drive speed: ~0.15 m/s (estimate)

@@ -8,33 +8,37 @@ from src.config import (
     ARRAY_LENGTH_M,
     CHARGING_STATIONS,
     NUM_PANELS,
+    NUM_ROWS,
+    ROW_PITCH,
     ROBOT_FOOTPRINT,
 )
 
 
 figure, axes = plt.subplots()
 axes.set_xlim(0, ARRAY_LENGTH_M)
-axes.set_ylim(-0.5, config.PANEL_SIZE[0] + 0.2)
+axes.set_ylim(-0.2, NUM_ROWS * ROW_PITCH)
 axes.set_aspect("equal")
 robot_status = axes.text(
-    0.5,
-    1.1,
+    0.01,
+    1.01,
     "",
     ha="left",
     va="bottom",
     fontsize=8,
+    transform=axes.transAxes,
 )
 
 panel_rectangles = []
-for panel_index in range(NUM_PANELS):
-    rectangle = patches.Rectangle(
-        (panel_index * config.PANEL_WIDTH_M, 0),
-        config.PANEL_WIDTH_M,
-        config.PANEL_SIZE[0],
-    )
-    axes.add_patch(rectangle)
-    rectangle.set_edgecolor("black")
-    panel_rectangles.append(rectangle)
+for row in range(NUM_ROWS):
+    for col in range(NUM_PANELS):
+        rectangle = patches.Rectangle(
+            (col * config.PANEL_WIDTH_M, row * ROW_PITCH),
+            config.PANEL_WIDTH_M,
+            config.PANEL_SIZE[0],
+        )
+        axes.add_patch(rectangle)
+        rectangle.set_edgecolor("black")
+        panel_rectangles.append(rectangle)
 
 for rectangle, panel_state in zip(panel_rectangles, panel.PANELS):
     grayscale = 1 - panel_state["dust"]
@@ -44,18 +48,24 @@ for rectangle, panel_state in zip(panel_rectangles, panel.PANELS):
 
 station_markers = []
 station_labels = []
-for station_index, (station_x, _) in enumerate(CHARGING_STATIONS):
+for station_index, (station_x, station_y) in enumerate(CHARGING_STATIONS):
     marker = patches.Rectangle(
-        (station_x - 0.15, -0.3),
+        (station_x - 0.15, station_y - 0.15),
         0.3,
-        0.3,
+        0.15,
         facecolor="#d4a017",
         edgecolor="black",
     )
     axes.add_patch(marker)
     station_markers.append(marker)
     station_labels.append(
-        axes.text(station_x, -0.34, f"S{station_index}", ha="center", va="top")
+        axes.text(
+            station_x,
+            station_y - 0.17,
+            f"S{station_index}",
+            ha="center",
+            va="top",
+        )
     )
 
 station_route, = axes.plot(
@@ -87,6 +97,17 @@ chassis = patches.Rectangle(
     edgecolor="black",
 )
 axes.add_patch(chassis)
+heading_arrow = patches.Polygon(
+    [
+        (robot.ROBOT["x"] + chassis_width / 2, robot.ROBOT["y"]),
+        (robot.ROBOT["x"] + chassis_width / 2 - 0.1, robot.ROBOT["y"] + 0.06),
+        (robot.ROBOT["x"] + chassis_width / 2 - 0.1, robot.ROBOT["y"] - 0.06),
+    ],
+    closed=True,
+    facecolor="#ffeb3b",
+    edgecolor="black",
+)
+axes.add_patch(heading_arrow)
 for wheel in wheels:
     axes.add_patch(wheel)
 
@@ -142,6 +163,23 @@ def update(frame_number):
             robot.ROBOT["y"] - chassis_height / 2,
         )
     )
+    direction = 1 if robot.ROBOT["heading"] == 0.0 else -1
+    heading_arrow.set_xy(
+        [
+            (
+                robot.ROBOT["x"] + direction * chassis_width / 2,
+                robot.ROBOT["y"],
+            ),
+            (
+                robot.ROBOT["x"] + direction * (chassis_width / 2 - 0.1),
+                robot.ROBOT["y"] + 0.06,
+            ),
+            (
+                robot.ROBOT["x"] + direction * (chassis_width / 2 - 0.1),
+                robot.ROBOT["y"] - 0.06,
+            ),
+        ]
+    )
     for wheel, (x_offset, y_offset) in zip(wheels, wheel_offsets):
         wheel.center = (
             robot.ROBOT["x"] + x_offset,
@@ -166,7 +204,7 @@ def update(frame_number):
     )
     for droplet, (x_offset, y_offset) in zip(spray_droplets, spray_offsets):
         droplet.center = (
-            (robot.ROBOT["x"] + x_offset) % ARRAY_LENGTH_M,
+            robot.ROBOT["x"] + x_offset,
             robot.ROBOT["y"] + y_offset,
         )
         droplet.set_visible(spray_active)
@@ -180,19 +218,21 @@ def update(frame_number):
         and robot.ROBOT["target_panel"] is not None
     )
     if station_route_active:
-        station_x = CHARGING_STATIONS[station_id][0]
+        station_x, station_y = CHARGING_STATIONS[station_id]
         station_route.set_data(
             [robot.ROBOT["x"], station_x],
-            [robot.ROBOT["y"], -0.15],
+            [robot.ROBOT["y"], station_y - 0.15],
         )
     elif panel_route_active:
+        target_state = panel.PANELS[robot.ROBOT["target_panel"]]
         panel_center_x = (
-            robot.ROBOT["target_panel"] * config.PANEL_WIDTH_M
+            robot.ROBOT["target_panel"] % NUM_PANELS * config.PANEL_WIDTH_M
             + config.PANEL_WIDTH_M / 2
         )
+        panel_center_y = target_state["row"] * ROW_PITCH + config.PANEL_SIZE[0] / 2
         station_route.set_data(
             [robot.ROBOT["x"], panel_center_x],
-            [robot.ROBOT["y"], -0.15],
+            [robot.ROBOT["y"], panel_center_y],
         )
     station_route.set_visible(station_route_active or panel_route_active)
     robot_status.set_text(
@@ -206,6 +246,7 @@ def update(frame_number):
         *station_markers,
         *station_labels,
         station_route,
+        heading_arrow,
         *wheels,
         chassis,
         *brush_lines,

@@ -25,6 +25,10 @@ Three ideas carry the whole simulation:
 
 4. **The robot drives itself.** It boots into MOVING and cleans when either the distance trigger fires (like the real robot) or the simulated dirt sensor detects a soiled panel. On low battery it charges in place, then resumes exactly where it left off.
 
+Wrap-around patrol is replaced by a lidar edge stop: at the array bounds, the robot clamps inside the panel and reverses heading (0.0 ↔ 180.0), so patrol runs back and forth.
+
+The simulated world has two 20-panel rows separated by the estimated `ROW_GAP_M`. The robot uses `TRANSPORT` to cross the gap and patrols serpentine-style, with 2D routing for charging and panel dispatch. Panel IDs are now 0–39 and telemetry includes `row`; use a fresh Kafka topic, checkpoint, and telemetry lake before collecting data for analytics, since existing output is not migrated.
+
 ## Project structure
 
 ```
