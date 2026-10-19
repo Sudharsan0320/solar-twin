@@ -6,6 +6,10 @@ ROBOT_FOOTPRINT = (0.3, 0.2, 2.5)
 DRIVE_SPEED = 0.15
 # Battery: 12 V, 2200 mAh Li-ion (estimate)
 BATTERY = (12, 2200)
+# Charging station positions in meters (x, y) (ESTIMATE)
+CHARGING_STATIONS = [(5.0, 0.0), (25.0, 0.0), (35.0, 0.0)]
+# Battery level that triggers charging (ESTIMATE)
+BATTERY_LOW_PCT = 20.0
 # Pump flow: 100 L/H — midpoint of the documented 80–120 range (FACT, datasheet)
 PUMP_FLOW = 100
 # Dust growth: ~0.4% efficiency loss per day (estimate)
@@ -14,6 +18,8 @@ DUST_GROWTH = 0.004
 MAX_DUST = 1.0
 # Dust fraction at which the simulated dirt sensor fires (ESTIMATE)
 DIRT_THRESHOLD = 0.3
+# Dust fraction at which a panel raises a dispatch alert (ESTIMATE)
+PANEL_ALERT_THRESHOLD = 0.5
 # Battery drain per idle tick: 0.02 percentage points (ESTIMATE)
 BATTERY_IDLE_DRAIN_PER_TICK = 0.02
 # Battery drain per moving tick: 0.1 percentage points (ESTIMATE)

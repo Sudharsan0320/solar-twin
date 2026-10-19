@@ -28,6 +28,16 @@ def emit(tick_number):
         "robot_id": ROBOT_ID,
         "ts": timestamp.isoformat(),
         "state": robot_state["state"],
+        "station_id": (
+            robot_state["target_station"]
+            if robot_state["target_station"] is not None
+            else -1
+        ),
+        "target_panel": (
+            robot_state["target_panel"]
+            if robot_state["target_panel"] is not None
+            else -1
+        ),
         "x": robot_state["x"],
         "y": robot_state["y"],
         "heading": robot_state["heading"],
